@@ -1564,7 +1564,7 @@ fi
 
 echo "$as_me:$LINENO: checking for right linked object" >&5
 echo $ECHO_N "checking for right linked object... $ECHO_C" >&6
-if test $gcc_kernel_version = 2 ; then
+if test "$gcc_kernel_version" = 2 ; then
 	LINK_OBJ=windrvr_gcc_v2.a
 else
 	CFLAGS="$CFLAGS -fno-strict-aliasing"
