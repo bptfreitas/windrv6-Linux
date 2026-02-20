@@ -17,6 +17,8 @@
 #include <linux/usb.h>
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
+#include <linux/time.h>
+
 #include "windrvr_usb.h"
 #include "wd_ver.h"
 #include "wdusb_interface.h"
@@ -181,12 +183,12 @@ static int urb_issue(struct urb_ctx *uctx);
 
 static unsigned long wdusb_msecs_to_jiffies(unsigned long msecs)
 {
-    struct timespec t;
+    struct timespec64 t;
 
     t.tv_sec = msecs / 1000L;
     t.tv_nsec = (msecs - t.tv_sec * 1000L) * 1000000L;
 
-    return timespec_to_jiffies(&t);
+    return timespec64_to_jiffies(&t);
 }
 
 static HANDLE buf_init(void *buf_addr)
@@ -226,32 +228,32 @@ static void wdusb_urb_unlink(struct urb *urb)
 }
 
 static void set_pipe_info(WDU_PIPE_INFO *pipe_info,
-    struct usb_endpoint_descriptor *endp)
+    struct usb_host_endpoint *endp)
 {
-    pipe_info->dwNumber = endp->bEndpointAddress;
-    pipe_info->dwMaximumPacketSize = WDU_GET_MAX_PACKET_SIZE(endp->wMaxPacketSize);
-    pipe_info->type = endp->bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
+    pipe_info->dwNumber = endp->desc.bEndpointAddress;
+    pipe_info->dwMaximumPacketSize = WDU_GET_MAX_PACKET_SIZE(endp->desc.wMaxPacketSize);
+    pipe_info->type = endp->desc.bmAttributes & USB_ENDPOINT_XFERTYPE_MASK;
     if (pipe_info->type == PIPE_TYPE_CONTROL)
         pipe_info->direction = WDU_DIR_IN_OUT;
     else
     {
-        pipe_info->direction = endp->bEndpointAddress & USB_ENDPOINT_DIR_MASK ?
+        pipe_info->direction = endp->desc.bEndpointAddress & USB_ENDPOINT_DIR_MASK ?
             WDU_DIR_IN : WDU_DIR_OUT;
     }
-    pipe_info->dwInterval = endp->bInterval;
+    pipe_info->dwInterval = endp->desc.bInterval;
 }
 
 static void fill_alt_settings_data(WDU_ALTERNATE_SETTING *pAlternateSettings, 
     struct usb_interface *interface, int alt_index)
 {
     WDU_ENDPOINT_DESCRIPTOR *pEndpointDescriptors;
-    struct usb_endpoint_descriptor *ep_desc;
-    struct usb_interface_descriptor *if_desc;
+    struct usb_host_endpoint *ep_desc;
+    struct usb_host_interface *if_desc;
     int i;
 
     if_desc = DESC(interface->altsetting[alt_index]);
 
-    for (i=0; i<if_desc->bNumEndpoints; i++)    
+    for (i=0; i<if_desc->desc.bNumEndpoints; i++)
     {
         pEndpointDescriptors = &pAlternateSettings->pEndpointDescriptors[i];
         ep_desc = DESC(interface->altsetting[alt_index].endpoint[i]);
