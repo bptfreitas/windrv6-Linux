@@ -240,6 +240,7 @@ static void set_pipe_info(WDU_PIPE_INFO *pipe_info,
         pipe_info->direction = endp->desc.bEndpointAddress & USB_ENDPOINT_DIR_MASK ?
             WDU_DIR_IN : WDU_DIR_OUT;
     }
+
     pipe_info->dwInterval = endp->desc.bInterval;
 }
 
@@ -272,7 +273,7 @@ static int calc_device_info_size(struct usb_device *udev)
     for (i=0; i<udev->descriptor.bNumConfigurations; i++)
     {
         struct usb_config_descriptor *conf_desc;
-        conf_desc = DESC(udev->config[i]);
+        conf_desc = DESC(udev->config[i].desc);
         count+=sizeof(WDU_CONFIGURATION);
         count+=sizeof(WDU_INTERFACE) * conf_desc->bNumInterfaces;
 
