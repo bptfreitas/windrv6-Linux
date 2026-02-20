@@ -74,20 +74,31 @@ else if test $LINUX_USB_SUPPORT = yes ; then
     mkdir -p .tmp_driver
     cd .tmp_driver
     if test $VER_BASE = "2.6" -a $VER_SUBMINOR -ge 33; then
-	    echo "#include <generated/autoconf.h>" >> hello.c
+	    echo "#include <generated/autoconf.h>" > hello_main.c
     else if test $VER_BASE = "2.6" -a $VER_SUBMINOR -ge 17; then
-	    echo "#include <linux/autoconf.h>" >> hello.c
+	    echo "#include <linux/autoconf.h>" > hello_main.c
     else
-	    echo "#include <linux/config.h>" >> hello.c
+	    echo -e "#include <linux/module.h>\n#include <linux/kernel.h>\n#include <linux/init.h>" > hello_main.c
     fi
     fi
-    echo "#if defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)" >> hello.c
-    echo "int usb_support;" >> hello.c
-    echo "#endif" >> hello.c
-    echo "int init_module(void) { return 0; }" >> hello.c
-    echo "void cleanup_module(void) {}" >> hello.c
-    USB_SUPPORT=`gcc -E -D__KERNEL__ hello.c $INCLUDEDIRS | grep -c usb_support`
-    if test $USB_SUPPORT = 0; then
+    echo "#if defined(CONFIG_USB) || defined(CONFIG_USB_MODULE)" >> hello_main.c
+    echo "int usb_support;" >> hello_main.c
+    echo "#else" >> hello_main.c
+    echo "#error 'no usb detected!'" >> hello_main.c
+    echo "#endif" >> hello_main.c
+    echo "MODULE_DESCRIPTION(\"Checking USB\");" >> hello_main.c
+    echo "MODULE_LICENSE(\"GPL\");" >> hello_main.c
+    echo "int init_module(void) { return 0; }" >> hello_main.c
+    echo "void cleanup_module(void) {}" >> hello_main.c
+    
+    echo "obj-m := hello.o " > Kbuild
+    echo "hello-y := hello_main.o " >> Kbuild
+    echo "ccflags-y := -DTESTE " >> Kbuild
+    
+    # USB_SUPPORT=`gcc -E -D__KERNEL__ hello.c $INCLUDEDIRS | grep -c usb_support`
+    make -C /lib/modules/`uname -r`/build M=$PWD modules
+        
+    if [[ $? -ne 0 ]]; then
         LINUX_USB_SUPPORT=no
     fi
     cd ..
