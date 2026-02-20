@@ -42,7 +42,7 @@ VER_SUBMINOR=`echo $VER | cut -f 3 -d "." | cut -f 1 -d "-"`
 
 if test -z $KERNEL_DIR ; then
     KERNEL_DIR=/lib/modules/$VER/build
-    KERNEL_SRC=/lib/modules/$VER/source
+    KERNEL_SRC=/lib/modules/$VER/src
 fi
 
 if test ! -d $KERNEL_DIR ; then
