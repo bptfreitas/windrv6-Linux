@@ -1,6 +1,17 @@
 # Jungo Confidential. Copyright (c) 2011 Jungo Ltd.  http://www.jungo.com
 # Template file for configure script
 
+ifneq ($(KERNELRELEASE),)
+
+obj-m  := @MODULE_NAME@.o
+@MODULE_NAME@-y := wdusb_linux.o
+
+ccflags-y := @CFLAGS@ @EXTRA_CFLAGS@
+
+ccflags-remove-y := -pg
+
+else
+
 CSRCS = @CSRCS@ 
 OD = @OD@
 MODDIR = @MODDIR@
@@ -11,25 +22,19 @@ EXTRA_CFLAGS = @EXTRA_CFLAGS@
 LDFLAGS = @LDFLAGS@
 ROOT_DIR = @ROOT_DIR@
 
+KDIR ?= /lib/modules/`uname -r`/build
+
 ifeq ($(DEBUG),1)
 	CFLAGS += -g -DDEBUG
 endif
 
-COBJS = $(patsubst %.c,$(OD)/%.o,$(CSRCS))
+# COBJS = $(patsubst %.c,$(OD)/%.o,$(CSRCS))
 
-all: @ALL_DEPS@
+all: modules
 
-$(OD):
-	@OD_RULE@ 
-
-$(COBJS): $(OD)/%.o : %.c 
-	@COBJS_RULE@
-
-$(TARGET): @TARGET_DEPS@
-	@TARGET_RULE@
-
-__temp_link:
-	@TEMP_RULE@
+modules:	
+	ln -f -s makefile.usb Makefile 
+	make -C $(KDIR) M=$$PWD modules
 
 modpost:
 	@MODPOST_RULE@
@@ -37,4 +42,6 @@ modpost:
 	
 clean:
 	@CLEAN_RULE@
+	
+endif
 
