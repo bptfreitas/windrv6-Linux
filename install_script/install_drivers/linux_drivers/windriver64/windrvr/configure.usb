@@ -1296,7 +1296,7 @@ if test -z $KERNEL_DIR ; then
 	use_running_kernel=1
 	run_version=`uname -r`
 	KERNEL_DIR=/lib/modules/$run_version/build
-	KERNEL_SRC=/lib/modules/$run_version/source
+	KERNEL_SRC=/lib/modules/$run_version/src
 else
 	KERNEL_SRC=$KERNEL_DIR
 fi
@@ -1361,33 +1361,19 @@ echo "${ECHO_T}$INCLUDEDIRS" >&6
 
 echo "$as_me:$LINENO: checking linux kernel version" >&5
 echo $ECHO_N "checking linux kernel version... $ECHO_C" >&6
-	mkdir -p .tmp_driver
-	cd .tmp_driver
-	echo "#include <linux/version.h>" > hello.c
-	echo "char *jsver=UTS_RELEASE" >> hello.c
-	GCC_OUTPUT=`gcc -E hello.c $INCLUDEDIRS`
-        UTS_TEST=`echo $GCC_OUTPUT | grep UTS_RELEASE | cut -d "=" -f2`
-	if test "$UTS_TEST" = "UTS_RELEASE" ; then
-	    # look for UTS_RELEASE in a different location (changed in kernel 2.6.33)
-	    if test -e $KERNEL_SRC/include/generated/utsrelease.h ; then
-	    	echo "#include <generated/utsrelease.h>" > hello.c
-	    else
-	    	# look for UTS_RELEASE in a different location (changed in kernel 2.6.18)
-	    	if test ! -e $KERNEL_SRC/include/linux/utsrelease.h ; then
-	            INCLUDEDIRS="$INCLUDEDIRS -I$KERNEL_DIR/include"
-	    	fi
-	    	echo "#include <linux/utsrelease.h>" > hello.c
-	    fi
-	    echo "char *jsver=UTS_RELEASE" >> hello.c
-            GCC_OUTPUT=`gcc -E hello.c $INCLUDEDIRS`
-	fi
-	VER=`echo $GCC_OUTPUT | grep jsver | cut -d"=" -f2 | cut -d'"' -f2`
+
+	cur_dir=$PWD
+
+	cd $KERNEL_SRC
+	
+	VER=`make kernelversion`
+	
         VER_BASE=`echo $VER | cut -c 1-3`
         VER_MAJOR=`echo $VER | cut -f 1 -d "."`
 	VER_MINOR=`echo $VER | cut -f 2 -d "."`
 	VER_SUBMINOR=`echo $VER | cut -f 3 -d "." | cut -f 1 -d "-"`
-	cd ..
-	rm -rf .tmp_driver
+	
+	cd "$cur_dir"
 
 	if test -z $VER || test "$VER" = "UTS_RELEASE"; then
 		echo "$as_me:$LINENO: result: not found" >&5
@@ -2574,6 +2560,7 @@ if test "$no_create" != yes; then
   test "$silent" = yes &&
     ac_config_status_args="$ac_config_status_args --quiet"
   exec 5>/dev/null
+
   $SHELL $CONFIG_STATUS $ac_config_status_args || ac_cs_success=false
   exec 5>>config.log
   # Use ||, not &&, to avoid exiting from the if with $? = 1, which
