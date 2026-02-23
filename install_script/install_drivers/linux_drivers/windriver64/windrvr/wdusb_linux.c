@@ -346,7 +346,7 @@ static void usb_generic_disconnect(struct usb_interface *interface)
 
     dev = usb_get_intfdata (interface);
     usb_set_intfdata (interface, NULL);
-    
+
     dev->device_connected = 0;
     g_cb.wd_device_detach(dev);
     kfree(dev);
@@ -456,7 +456,7 @@ static int find_alt_set_index(struct usb_interface *iface, int alt_num)
     u8 i;
 
     for (i = 0; i < iface->num_altsetting; i++)
-        if (DESC(iface->altsetting[i])->bAlternateSetting == alt_num)
+        if (DESC(iface->altsetting[i])->desc.bAlternateSetting == alt_num)
             return i;
     KDBG(D_ERROR, S_USB, "find_alt_set_index: failed to find alternate"
         " setting %d", alt_num);
