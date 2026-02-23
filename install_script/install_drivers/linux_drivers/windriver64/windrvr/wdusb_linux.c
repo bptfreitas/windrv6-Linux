@@ -873,13 +873,9 @@ static int urb_issue(struct urb_ctx *uctx)
 
     uctx->urb->context = uctx;
 
-#if defined(LINUX_26)
     /* Since we may be called from within a completion routine
      * we need to use GFP_ATOMIC - see usb_submit_urb man page */
     rc = usb_submit_urb(uctx->urb, GFP_ATOMIC);
-#else
-    rc = usb_submit_urb(uctx->urb);
-#endif
 
 Exit:
     if (rc)
@@ -988,11 +984,8 @@ static int usb_submit_sync(struct usb_dev_info *dev,
 
     urb->context = &tc->urbs[0];
 
-#if defined(LINUX_26)
     status = usb_submit_urb(urb, GFP_NOIO);
-#else
-    status = usb_submit_urb(urb);
-#endif
+
     if (status) 
     {
         set_current_state(TASK_RUNNING);
@@ -1183,11 +1176,8 @@ static int uctx_get(pipe_t *pipe, DWORD bytes, struct urb_ctx *uctx)
             pipe->max_packet_size;
     }
 
-#if defined(LINUX_26)
     uctx->urb = usb_alloc_urb(packets, GFP_KERNEL);
-#else
-    uctx->urb = usb_alloc_urb(packets);
-#endif
+
     if (!uctx->urb)
         return -ENOMEM;
 
