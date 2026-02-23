@@ -339,19 +339,14 @@ Exit:
 
 }
 
-#if defined(LINUX_26)
+
 static void usb_generic_disconnect(struct usb_interface *interface)
-#else
-static void usb_generic_disconnect(struct usb_device *udev, void *ptr)
-#endif
 {
     struct usb_dev_info *dev;
-#if defined(LINUX_26)
+
     dev = usb_get_intfdata (interface);
     usb_set_intfdata (interface, NULL);
-#else
-    dev = (struct usb_dev_info *)ptr;
-#endif
+    
     dev->device_connected = 0;
     g_cb.wd_device_detach(dev);
     kfree(dev);
@@ -411,8 +406,10 @@ DWORD WD_FUNC_NAME(OS_register_devices)(void **register_ctx,
     
     memset(id, 0, mt_alloc_size); 
     BZERO(*driver);
+
     driver->probe = usb_generic_probe;
     driver->disconnect = usb_generic_disconnect;
+
     sprintf(name, "%s_%d", g_cb.wd_get_driver_name(), name_id++);
     driver->name = name;
     driver->id_table = id;
