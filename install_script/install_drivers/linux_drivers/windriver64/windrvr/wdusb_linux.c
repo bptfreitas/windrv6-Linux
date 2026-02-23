@@ -301,13 +301,9 @@ static int calc_device_info_size(struct usb_device *udev)
     return count;
 }
     
-#if defined(LINUX_26)
+
 static int usb_generic_probe(struct usb_interface *interface, 
     const struct usb_device_id *id)
-#else
-static void *usb_generic_probe(struct usb_device *udev, unsigned int ifnum, 
-    const struct usb_device_id *id)
-#endif
 {
     struct usb_dev_info *dev;
     u32 config_index, interface_index;
