@@ -269,26 +269,30 @@ static int calc_device_info_size(struct usb_device *udev)
     uint i, j, k;
     int count;
 
+    if ( udev == NULL ){
+        printk(KERN_ERR "%s: udev is NULL pointer", __func__ );
+        return -EFAULT;
+    }
+
     count = sizeof(WDU_DEVICE);
+
     for (i=0; i<udev->descriptor.bNumConfigurations; i++)
     {
         struct usb_config_descriptor *conf_desc;
         conf_desc = DESC(udev->config[i].desc);
-        count+=sizeof(WDU_CONFIGURATION);
-        count+=sizeof(WDU_INTERFACE) * conf_desc->bNumInterfaces;
+        count += sizeof(WDU_CONFIGURATION);
+        count += sizeof(WDU_INTERFACE) * conf_desc->bNumInterfaces;
 
         // loop over all alternate settings
         for (j=0; j<conf_desc->bNumInterfaces; j++)
         {
-            struct usb_interface *interface = 
-#if !defined(LINUX_26)
-                &
-#endif
+            struct usb_interface *interface =
                 udev->config[i].interface[j];
+
             for(k=0; k<interface->num_altsetting; k++)
             {
                 u8 bNumEndpoints;
-                bNumEndpoints = DESC(interface->altsetting[k])->bNumEndpoints;
+                bNumEndpoints = DESC(interface->altsetting[k])->desc.bNumEndpoints;
                 count+=sizeof(WDU_ALTERNATE_SETTING);
                 count+=(sizeof(WDU_ENDPOINT_DESCRIPTOR)+sizeof(WDU_PIPE_INFO))*bNumEndpoints;
             }
@@ -308,11 +312,13 @@ static void *usb_generic_probe(struct usb_device *udev, unsigned int ifnum,
     struct usb_dev_info *dev;
     u32 config_index, interface_index;
     int ret = 0;
-#if defined(LINUX_26)
-    struct usb_device *udev = interface_to_usbdev(interface);
-#else
-    struct usb_interface *interface = &udev->actconfig->interface[ifnum];
-#endif 
+
+    if ( udev == NULL ){
+        printk(KERN_ERR "%s: udev is NULL pointer", __func__ );
+        return NULL;
+    }  
+
+    struct usb_interface *interface = udev->actconfig->interface[ifnum];
 
     dev = kmalloc(sizeof(struct usb_dev_info), 
         in_interrupt() ? GFP_ATOMIC : GFP_KERNEL);
@@ -323,8 +329,9 @@ static void *usb_generic_probe(struct usb_device *udev, unsigned int ifnum,
         goto Exit;
     }
 
-    config_index = DESC(udev->config[0])->bConfigurationValue;
-    interface_index = DESC(interface->altsetting[0])->bInterfaceNumber;
+    config_index = DESC(udev->config[0])->desc.bConfigurationValue;
+    interface_index = DESC(interface->altsetting[0])->desc.bInterfaceNumber;
+
     dev->udev = udev;
     dev->interface = interface;
     dev->device_connected = 1;
@@ -336,12 +343,8 @@ static void *usb_generic_probe(struct usb_device *udev, unsigned int ifnum,
         dev = NULL;
     }
 Exit:
-#if defined(LINUX_26)
-    usb_set_intfdata (interface, dev);
-    return ret;
-#else
     return dev;
-#endif
+
 }
 
 #if defined(LINUX_26)
