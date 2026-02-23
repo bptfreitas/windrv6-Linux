@@ -495,7 +495,7 @@ DWORD WD_FUNC_NAME(OS_set_interface)(HANDLE os_dev_h,
         return g_cb.wd_map_error_status(-EINVAL);
     } 
 
-    if_desc = DESC(interface->altsetting[alt_index]);
+    if_desc = DESC(interface->altsetting[alt_index].desc);
     rc = usb_set_interface(dev->udev, ifnum, alt_num);
     if (rc)
     {
@@ -671,7 +671,7 @@ DWORD WD_FUNC_NAME(OS_get_device_info)(HANDLE os_dev_h, void *buf,
     for (i=0; i<udev->descriptor.bNumConfigurations; i++)
     {
         pConfig = &dev_buf->pConfigs[i];
-        config = DESC(udev->config[i]);
+        config = DESC(udev->config[i].desc);
 
         if (config->bConfigurationValue == active_config)
             dev_buf->pActiveConfig = pConfig;
@@ -684,24 +684,23 @@ DWORD WD_FUNC_NAME(OS_get_device_info)(HANDLE os_dev_h, void *buf,
         {
             u8 interface_index;
             pInterface = &pConfig->pInterfaces[j];
-            interface = 
-#if !defined(LINUX_26)
-                &
-#endif
-                udev->config[i].interface[j];
+            interface = udev->config[i].interface[j];
             pInterface->dwNumAltSettings = interface->num_altsetting;
             pInterface->pAlternateSettings = 
                 (WDU_ALTERNATE_SETTING *)buf_malloc(buf_h, 
                     sizeof(WDU_ALTERNATE_SETTING) * interface->num_altsetting);
-            interface_index = DESC(interface->altsetting[0])->bInterfaceNumber;
+            interface_index = DESC(interface->altsetting[0])->desc.bInterfaceNumber;
             if (interface_index == active_ifnum)
                 dev_buf->pActiveInterface[0] = pInterface;
+
             for(k=0; k<interface->num_altsetting; k++)
             {
                 WDU_ALTERNATE_SETTING *pAlternateSetting = 
                     &pInterface->pAlternateSettings[k];
+
                 struct usb_interface_descriptor *altsetting = 
-                    DESC(interface->altsetting[k]);
+                    DESC(interface->altsetting[k].desc);
+
                 int num_endp = altsetting->bNumEndpoints;
                 if (active_setting == altsetting->bAlternateSetting && 
                     interface_index == active_ifnum)
