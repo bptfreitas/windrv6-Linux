@@ -302,19 +302,15 @@ static int calc_device_info_size(struct usb_device *udev)
 }
     
 
+    
 static int usb_generic_probe(struct usb_interface *interface, 
     const struct usb_device_id *id)
 {
     struct usb_dev_info *dev;
     u32 config_index, interface_index;
     int ret = 0;
-
-    if ( udev == NULL ){
-        printk(KERN_ERR "%s: udev is NULL pointer", __func__ );
-        return NULL;
-    }  
-
-    struct usb_interface *interface = udev->actconfig->interface[ifnum];
+    
+    struct usb_device *udev = interface_to_usbdev(interface);
 
     dev = kmalloc(sizeof(struct usb_dev_info), 
         in_interrupt() ? GFP_ATOMIC : GFP_KERNEL);
@@ -325,9 +321,8 @@ static int usb_generic_probe(struct usb_interface *interface,
         goto Exit;
     }
 
-    config_index = DESC(udev->config[0])->desc.bConfigurationValue;
-    interface_index = DESC(interface->altsetting[0])->desc.bInterfaceNumber;
-
+    config_index = DESC(udev->config->desc)->bConfigurationValue;
+    interface_index = DESC(interface->altsetting->desc)->bInterfaceNumber;
     dev->udev = udev;
     dev->interface = interface;
     dev->device_connected = 1;
@@ -339,7 +334,8 @@ static int usb_generic_probe(struct usb_interface *interface,
         dev = NULL;
     }
 Exit:
-    return dev;
+    usb_set_intfdata (interface, dev);
+    return ret;
 
 }
 
