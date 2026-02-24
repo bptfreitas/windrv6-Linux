@@ -6,11 +6,15 @@ ifneq ($(KERNELRELEASE),)
 obj-m  := @MODULE_NAME@.o
 @MODULE_NAME@-y := wdusb_linux.o
 
-ccflags-y := @CFLAGS@ @EXTRA_CFLAGS@
+ccflags-y := @CFLAGS@ @EXTRA_CFLAGS@ 
 
-ccflags-remove-y := -pg
+ccflags-y += -fno-omit-frame-pointer
+
+ccflags-remove-y := -pg -Werror=date-time -fomit-frame-pointer
 
 else
+
+# ldflags-y := windrv_gcc_v3.a
 
 CSRCS = @CSRCS@ 
 OD = @OD@

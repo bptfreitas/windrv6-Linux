@@ -1267,8 +1267,8 @@ if test "${enable_kbuild+set}" = set; then
   USE_KBUILD=$enableval
 fi;
 
-EXTRA_CFLAGS="-DLINUX -DWINDRIVER_KERNEL "
-CFLAGS="-c -O2 -Wall -D__KERNEL__ -DMODULE "
+EXTRA_CFLAGS=""
+CFLAGS="-O0 -Wall "
 LDFLAGS=""
 
 dist_target_cpu=x86_64
