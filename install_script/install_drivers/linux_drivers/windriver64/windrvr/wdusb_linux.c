@@ -58,6 +58,9 @@
 #define MAX_PACKETS 900
 #define SUCCESS_NO_NEW_URB -100 /* Arbitrary value */
 
+struct trans_ctx *tc_alloc(pipe_t *pipe, DWORD num_urbs);
+u32 get_match_flag(WDU_MATCH_TABLE *mt);
+
 #define spinlock_wait(lock) \
     spin_lock_irqsave((spinlock_t *)(lock)->spinlock, (lock)->flags);
 #define spinlock_release(lock) \
@@ -161,14 +164,10 @@ struct trans_ctx
 };
 
 
-#if defined(LINUX_26)
-    #define FILL_BULK_URB usb_fill_bulk_urb
-    #define FILL_INT_URB usb_fill_int_urb
-    #define FILL_CONTROL_URB  usb_fill_control_urb
-    #define USB_ISO_ASAP URB_ISO_ASAP
-#else
-    #define URB_ASYNC_UNLINK USB_ASYNC_UNLINK
-#endif
+#define FILL_BULK_URB usb_fill_bulk_urb
+#define FILL_INT_URB usb_fill_int_urb
+#define FILL_CONTROL_URB  usb_fill_control_urb
+#define USB_ISO_ASAP URB_ISO_ASAP
 
 #if defined(LINUX_26)
     #define DESC(x) (&((x).desc))

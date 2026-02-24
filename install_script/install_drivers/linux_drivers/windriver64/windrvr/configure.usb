@@ -1261,7 +1261,7 @@ if test "${enable_kbuild+set}" = set; then
 fi;
 
 EXTRA_CFLAGS=-DLINUX
-CFLAGS="-c -O2 -Wall -D__KERNEL__ -DMODULE "
+CFLAGS="-O2 -Wall -Wno-error"
 LDFLAGS=""
 
 dist_target_cpu=x86_64
