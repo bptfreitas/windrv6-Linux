@@ -18,6 +18,7 @@
 #include <linux/slab.h>
 #include <linux/vmalloc.h>
 #include <linux/time.h>
+#include <linux/usbdevice_fs.h>
 
 #include "windrvr_usb.h"
 #include "wd_ver.h"
@@ -1076,7 +1077,9 @@ static int urb_build(struct urb *urb, struct usb_dev_info *dev, pipe_t *pipe,
         urb->transfer_buffer_length = bytes;
         urb->context = NULL;
         urb->complete = usb_common_completion;
-        urb->transfer_flags = USB_ISO_ASAP;
+
+        //urb->transfer_flags = USB_ISO_ASAP;
+        urb->transfer_flags = USBDEVFS_URB_ISO_ASAP;
         urb->interval = pipe->interval;
 
         for (i=0; i< urb->number_of_packets; i++)
